@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DeepSeek Voice Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 15px;
+      word-wrap: break-word;
+    }
+    .user {
+      min-width: 20%;
+      background: #9fe0f7;
+      align-self: flex-end;
+      text-align: right;
+    }
+    .bot {
+      min-width: 20%;
+      background: #ffffff;
+      align-self: flex-start;
+      text-align: left;
+    }
+    #input-area {
+      display: flex;
+      padding: 10px;
+      background: #fff;
+    }
+    #input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    #send-btn, #start-btn {
+      margin-left: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      background: #4caf50;
+      color: white;
+      cursor: pointer;
+    }
+    audio {
+      width: 100%;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-box"></div>
+
+<div id="input-area">
+  <input id="input" type="text" placeholder="Type your message..." />
+  <button id="send-btn">Send</button>
+  <button id="start-btn">Start New Chat</button>
+</div>
+
+<script>
+const backendUrl = "http://localhost:8001";
+
+const chatBox = document.getElementById('chat-box');
+const input = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const startBtn = document.getElementById('start-btn');
+
+function appendMessage(sender, text, audioUrl = null) {
+  const message = document.createElement('div');
+  message.className = 'message ' + (sender === 'user' ? 'user' : 'bot');
+  message.innerHTML = `<div>${text}</div>`;
+  
+  if (audioUrl) {
+    const audio = document.createElement('audio');
+    audio.src = audioUrl;
+    audio.controls = true;
+    message.appendChild(audio);
+  }
+
+  chatBox.appendChild(message);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Start new conversation (initiate)
+startBtn.addEventListener('click', async () => {
+  try {
+    const name = prompt("请输入人物姓名:");
+    const relationship = prompt("请输入你与人物的关系:");
+    const favorite_color = prompt("请输入人物最喜欢的颜色:");
+
+    if (!name || !relationship || !favorite_color) {
+      alert("All fields are required!");
+      return;
+    }
+
+    const characterInfo = { name, relationship, favorite_color };
+
+    const response = await fetch(backendUrl + "/initiate/", {
+      method: "POST", // <-- make sure it is POST!
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(characterInfo),
+      credentials: "include"
+    });
+
+    const data = await response.json();
+    appendMessage('bot', "Chat started: " + data.Reply);
+  } catch (error) {
+    console.error(error);
+    alert("Failed to start chat!");
+  }
+});
+
+// Send message to DeepSeek
+sendBtn.addEventListener('click', async () => {
+  await sendMessage();
+});
+
+input.addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter') {
+    await sendMessage();
+  }
+});
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  appendMessage('user', text);
+  input.value = '';
+
+  try {
+    const response = await fetch(backendUrl + "/chat/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
+      credentials: "include"
+    });
+
+    const data = await response.json();
+    const replyText = data.reply;
+
+    // First show text
+    appendMessage('bot', replyText);
+
+    // Then request voice cloning
+    const voiceResponse = await fetch(backendUrl + "/voice_clone/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: replyText })
+    });
+
+    const voiceData = await voiceResponse.json();
+    const audioFile = voiceData.file; // e.g., "audio/xxx.wav"
+    
+    // Show audio button
+    const lastBotMessage = chatBox.querySelector('.bot:last-child');
+    if (lastBotMessage && audioFile) {
+      const audio = document.createElement('audio');
+      audio.src = audioFile;
+      audio.controls = true;
+      lastBotMessage.appendChild(audio);
+    }
+
+  } catch (error) {
+    console.error(error);
+    appendMessage('bot', "Error: Could not get a response.");
+  }
+}
+</script>
+
+</body>
+</html>
