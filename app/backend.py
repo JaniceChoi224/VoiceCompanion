@@ -7,14 +7,23 @@ from pydantic import BaseModel
 from datetime import datetime
 from F5TTS import TTS
 
-AUDIO_SAVE_PATH = "recordings"
-os.makedirs(AUDIO_SAVE_PATH, exist_ok=True)
 
-CHAT_SAVE_PATH = "chats"
-os.makedirs(CHAT_SAVE_PATH, exist_ok=True)
+dirpath = os.path.dirname(__file__)
 
-TEMPLATE_PATH = "templates"
-os.makedirs(CHAT_SAVE_PATH, exist_ok=True)
+if not dirpath.__eq__(os.getcwd()):
+    dirpath = os.getcwd()
+    AUDIO_SAVE_PATH = "app/static/recordings"
+    CHAT_SAVE_PATH = "app/static/chats"
+    TEMPLATE_PATH = "app/static/templates"
+else:
+    AUDIO_SAVE_PATH = "static/recordings"
+    CHAT_SAVE_PATH = "static/chats"
+    TEMPLATE_PATH = "static/templates"
+
+dirpath += "/"
+os.makedirs(dirpath + AUDIO_SAVE_PATH, exist_ok=True)
+os.makedirs(dirpath + CHAT_SAVE_PATH, exist_ok=True)
+os.makedirs(dirpath + TEMPLATE_PATH, exist_ok=True)
 
 # DeepSeek API configuration
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
@@ -23,6 +32,7 @@ DEEPSEEK_API_KEY = "sk-731921a5623e4c99a19176290b05f9a2"
 
 class ChatRequest(BaseModel):
     message: str
+    path: str
 
 
 class CharacterInfo(BaseModel):
@@ -33,7 +43,7 @@ class CharacterInfo(BaseModel):
 
 def record_audio(filename: str, duration: int = 10, samplerate: int = 24000):
     """Record audio from the microphone."""
-    filepath = os.path.join(AUDIO_SAVE_PATH, filename)
+    filepath = os.path.join(dirpath + AUDIO_SAVE_PATH, filename)
     recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
     sd.wait()  # Wait until finished
     wav.write(filepath, samplerate, recording)
@@ -41,11 +51,11 @@ def record_audio(filename: str, duration: int = 10, samplerate: int = 24000):
 
 
 def voice_clone(text: str, samplerate: int = 24000):
-    ref_audio = "recordings/voice_sample.wav"
+    ref_audio = AUDIO_SAVE_PATH + "/voice_sample.wav"
     ref_text = ""
-    audio_output, _ = TTS(ref_audio, ref_text, text, remove_silence=True)
+    audio_output, _ = TTS(dirpath + ref_audio, ref_text, text, remove_silence=True)
     filepath = os.path.join(AUDIO_SAVE_PATH, "test.wav")
-    wav.write(filepath, samplerate, audio_output[1])
+    wav.write(dirpath + filepath, samplerate, audio_output[1])
     return filepath
 
 
@@ -53,7 +63,7 @@ def fill_template(character_info: CharacterInfo) -> str:
     # Read template
     filename = 'character_info_template.txt'
     filepath = os.path.join(TEMPLATE_PATH, filename)
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(dirpath + filepath, "r", encoding="utf-8") as f:
         template_content = f.read()
 
     # Replace placeholders
@@ -111,7 +121,7 @@ def initiate_query_deepseek(character_info: CharacterInfo) -> str:
     filename = "character.json"
     filepath = os.path.join(CHAT_SAVE_PATH, filename)
 
-    with open(filepath, 'w') as f:
+    with open(dirpath + filepath, 'w') as f:
         json.dump(dict_data, f)
 
     # response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)
@@ -123,8 +133,7 @@ def initiate_query_deepseek(character_info: CharacterInfo) -> str:
 
 
 def query_deepseek(message: str, history_filepath: str) -> str:
-
-    with open(history_filepath) as f:
+    with open(dirpath + history_filepath) as f:
         dict_data = json.load(f)
 
     dict_data['messages'].append(
@@ -146,7 +155,7 @@ def query_deepseek(message: str, history_filepath: str) -> str:
 
     dict_data['messages'].append(response.json()['choices'][0]['message'])
 
-    with open(history_filepath, 'w') as f:
+    with open(dirpath + history_filepath, 'w') as f:
         json.dump(dict_data, f)
 
     # response = requests.post(DEEPSEEK_API_URL, headers=headers, json=payload)

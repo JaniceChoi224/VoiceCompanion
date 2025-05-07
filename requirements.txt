@@ -1,3 +1,3 @@
 f5-tts
-fastapi
+fastapi[standard]
 sounddevice

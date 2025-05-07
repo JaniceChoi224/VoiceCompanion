@@ -77,7 +77,9 @@
 </div>
 
 <script>
-const backendUrl = "http://localhost:8001";
+let historyPath = null;
+// const backendUrl = "http://localhost:8000";
+const backendUrl = "http://0.0.0.0:80";
 
 const chatBox = document.getElementById('chat-box');
 const input = document.getElementById('input');
@@ -122,6 +124,7 @@ startBtn.addEventListener('click', async () => {
     });
 
     const data = await response.json();
+    historyPath = data.file
     appendMessage('bot', "Chat started: " + data.Reply);
   } catch (error) {
     console.error(error);
@@ -151,7 +154,11 @@ async function sendMessage() {
     const response = await fetch(backendUrl + "/chat/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify(
+        { message: text,
+          path: historyPath
+        }
+      ),
       credentials: "include"
     });
 
@@ -175,7 +182,7 @@ async function sendMessage() {
     const lastBotMessage = chatBox.querySelector('.bot:last-child');
     if (lastBotMessage && audioFile) {
       const audio = document.createElement('audio');
-      audio.src = audioFile;
+      audio.src = backendUrl + '/' + audioFile;
       audio.controls = true;
       lastBotMessage.appendChild(audio);
     }
