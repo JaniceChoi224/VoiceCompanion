@@ -1,4 +1,5 @@
 import gc
+import os
 import json
 import re
 import tempfile
@@ -52,7 +53,8 @@ DEFAULT_TTS_MODEL_CFG = [
 
 # load models
 
-vocoder = load_vocoder()
+# vocoder = load_vocoder()
+vocoder = load_vocoder(is_local=True, local_path=f"{os.path.dirname(__file__)}/vocos")
 
 
 def load_f5tts():
