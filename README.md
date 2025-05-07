@@ -17,6 +17,11 @@ Run backend
 
 Run frontend on `http://localhost:3000`
 
+`serve`
+
+In miniconda3 device run
+
 ```
-serve
+conda install conda-forge::portaudio
+conda install conda-forge::ffmpeg
 ```
