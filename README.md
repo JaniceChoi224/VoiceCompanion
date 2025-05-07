@@ -1,10 +1,11 @@
 # VoiceCompanion
 
-Create a virtual environment using `Anaconda`
+Create a virtual environment using `Anaconda` and activate it
 
-`conda create -n voicecompanion python=3.10`
-
-`conda activate voicecompanion`
+```
+conda create -n voicecompanion python=3.10
+conda activate voicecompanion
+```
 
 Install dependices
 
@@ -16,3 +17,7 @@ Run backend
 
 Run frontend
 
+```
+npm install -g serve
+serve
+```
