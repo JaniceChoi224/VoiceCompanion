@@ -13,11 +13,10 @@ Install dependices
 
 Run backend
 
-`uvicorn main:app --reload --port 8001`
+`uvicorn main:app --reload --port 8000`
 
-Run frontend
+Run frontend on `http://localhost:3000`
 
 ```
-npm install -g serve
 serve
 ```
