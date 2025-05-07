@@ -24,4 +24,5 @@ In miniconda3 device run
 ```
 conda install conda-forge::portaudio
 conda install conda-forge::ffmpeg
+conda install anaconda::nginx
 ```
