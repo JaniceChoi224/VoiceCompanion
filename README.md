@@ -19,6 +19,10 @@ Run frontend on `http://localhost:3000`
 
 `serve`
 
+or on GPU
+
+`python -m http.server 3000`
+
 In miniconda3 device run
 
 ```
