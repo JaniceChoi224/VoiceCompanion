@@ -3,11 +3,11 @@ import os
 dirpath = os.path.dirname(__file__)
 sys.path.append(dirpath)  # adds current dir to path
 from typing import Annotated
-from fastapi import FastAPI, Form, Cookie
+from fastapi import FastAPI, UploadFile, HTTPException, Form, File
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from backend import ChatRequest, CharacterInfo, record_audio, voice_clone, query_deepseek, initiate_query_deepseek
+from backend import ChatRequest, CharacterInfo, record_audio, voice_clone, query_deepseek, initiate_query_deepseek, convert_audio_to_wav, check_file_exists
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -32,6 +32,30 @@ else:
     # Mount /static to serve files from ./static directory
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
+@app.post("/upload-voice/")
+async def upload_voice(file: UploadFile = File(...)):
+    try:
+        # Check file extension
+        if file.content_type not in ["audio/wav", "audio/mpeg"]:
+            raise HTTPException(status_code=400, detail="Invalid file type. Only .wav and .mp3 are allowed.")
+
+        # Read the uploaded file content directly to memory
+        file_content = await file.read()
+        input_format = file.filename.split(".")[-1].lower()
+
+        # Convert the audio file to WAV and save it
+        wav_file_path = convert_audio_to_wav(file_content, input_format)
+
+        return JSONResponse({"status": "success", "file": wav_file_path})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/check-audio-path/")
+async def check_audio_path():
+    file_exists = check_file_exists('audio', 'voice_sample.wav')
+    return JSONResponse({"status": "success", "exists": file_exists})
+
 @app.post("/record-audio/")
 async def record_audio_endpoint(duration: int = Form(10), filename: str = Form("voice_sample.wav")):
     """
@@ -44,9 +68,7 @@ async def record_audio_endpoint(duration: int = Form(10), filename: str = Form("
         response = JSONResponse(content=content)
         return response
     except Exception as e:
-        content = {"status": "error", "message": str(e)}
-        response = JSONResponse(content=content)
-        return response
+        raise HTTPException(status_code=500, detail=str(e))
 
 class TextData(BaseModel):
     text: str
@@ -61,9 +83,7 @@ async def voice_clone_endpoint(data: TextData):
         response = JSONResponse(content=content)
         return response
     except Exception as e:
-        content = {"status": "error", "message": str(e)}
-        response = JSONResponse(content=content)
-        return response
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/chat/")
 async def chat(data: ChatRequest):

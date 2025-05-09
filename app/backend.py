@@ -5,6 +5,8 @@ import requests
 import json
 from pydantic import BaseModel
 from datetime import datetime
+from pydub import AudioSegment
+from io import BytesIO
 from F5TTS import TTS
 
 
@@ -43,11 +45,56 @@ class CharacterInfo(BaseModel):
 
 def record_audio(filename: str, duration: int = 10, samplerate: int = 24000):
     """Record audio from the microphone."""
-    filepath = os.path.join(dirpath + AUDIO_SAVE_PATH, filename)
+    filepath = os.path.join(AUDIO_SAVE_PATH, filename)
     recording = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype='int16')
     sd.wait()  # Wait until finished
-    wav.write(filepath, samplerate, recording)
+    wav.write(dirpath + filepath, samplerate, recording)
     return filepath
+
+
+def check_file_exists(category: str, filename: str) -> bool:
+    """
+    Checks if the specified file exists in the directory.
+
+    Args:
+        category (str): The category where the file belong.
+        filename (str): The filename of the file to check.
+
+    Returns:
+        bool: True if the file exists, False otherwise.
+    """
+    if category == 'audio':
+        file_path = os.path.join(AUDIO_SAVE_PATH, filename)
+    elif category == 'templates':
+        file_path = os.path.join(TEMPLATE_PATH, filename)
+    elif category == 'chats':
+        file_path = os.path.join(CHAT_SAVE_PATH, filename)
+    return os.path.exists(dirpath + file_path)
+
+
+def convert_audio_to_wav(file_content: bytes, input_format: str) -> str:
+    """
+    Converts an in-memory audio file (bytes) to WAV format and saves it to a directory.
+
+    Args:
+        file_content (bytes): The input audio file content in bytes.
+        input_format (str): The format of the input file (e.g., "mp3", "wav").
+
+    Returns:
+        str: The path to the saved WAV file.
+    """
+    # Convert the file content to an audio segment
+    audio = AudioSegment.from_file(BytesIO(file_content), format=input_format)
+
+    # Define output filename
+    wav_filename = "voice_sample.wav"
+
+    wav_file_path = os.path.join(AUDIO_SAVE_PATH, wav_filename)
+
+    # Export to .wav format
+    audio.export(dirpath + wav_file_path, format="wav")
+
+    return wav_file_path
 
 
 def voice_clone(text: str, samplerate: int = 24000):
@@ -69,7 +116,7 @@ def fill_template(character_info: CharacterInfo) -> str:
     # Replace placeholders
     filled_content = template_content.replace("*NAME_PLACEHOLDER*", character_info.name)
     filled_content = filled_content.replace("*RELATIONSHIP_PLACEHOLDER*", character_info.relationship)
-    filled_content = filled_content.replace("*COLOR_PLACEHOLDER*", character_info.favorite_color)
+    filled_content = filled_content.replace("*LOCATION_PLACEHOLDER*", character_info.favorite_color)
 
     return filled_content
 
