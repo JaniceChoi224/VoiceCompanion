@@ -25,3 +25,23 @@ In miniconda3 device run
 conda install conda-forge::portaudio
 conda install conda-forge::ffmpeg
 ```
+
+On Ubuntu, install nginx as follow
+
+```
+sudo apt update
+sudo apt install nginx
+```
+
+In the server, run `sudo vim ~/etc/nginx/sites-enabled/fastapi_nginx`
+and edit the file as follow
+```
+server {
+  listen 80;
+  server_name 172.17.0.2;
+  location / {
+    proxy_pass http://127.0.0.1:8000;
+  }
+}
+```
+then run `sudo service nginx restart`
