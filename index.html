@@ -225,15 +225,17 @@
     startBtn.addEventListener('click', async () => {
     try {
         const name = prompt("请输入人物姓名:");
+        const gender = prompt("请输入人物性别:");
+        const age = prompt("请输入人物年龄:");
+        const job = prompt("请输入人物职业:");
         const relationship = prompt("请输入你与人物的关系:");
-        const favorite_color = prompt("请输入对话发生的场景:");
 
-        if (!name || !relationship || !favorite_color) {
+        if (!name || !gender || !age || !job || !relationship) {
         alert("All fields are required!");
         return;
         }
 
-        const characterInfo = { name, relationship, favorite_color };
+        const characterInfo = { name, gender, age, job, relationship };
 
         const response = await fetch(backendUrl + "/initiate/", {
         method: "POST", // <-- make sure it is POST!

@@ -1,0 +1,86 @@
+INFO:     Will watch for changes in these directories: ['/Users/ganzelin/Documents/GitHub/VoiceCompanion/app']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [26837] using StatReload
+INFO:     Started server process [26840]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26840]
+INFO:     Stopping reloader process [26837]
+INFO:     Will watch for changes in these directories: ['/Users/ganzelin/Documents/GitHub/VoiceCompanion/app']
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [36119] using StatReload
+INFO:     Started server process [36122]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Load vocos from local path /Users/ganzelin/Documents/GitHub/VoiceCompanion/app/vocos
+
+vocab :  /opt/anaconda3/envs/f5-tts/lib/python3.10/site-packages/f5_tts/infer/examples/vocab.txt
+token :  custom
+model :  /Users/ganzelin/.cache/huggingface/hub/models--SWivid--F5-TTS/snapshots/84e5a410d9cead4de2f847e7c9369a6440bdfaca/F5TTS_v1_Base/model_1250000.safetensors 
+
+INFO:     127.0.0.1:58576 - "GET /check-audio-path/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58677 - "OPTIONS /initiate/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58678 - "POST /initiate/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58982 - "GET /check-audio-path/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59044 - "OPTIONS /initiate/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59045 - "POST /initiate/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59120 - "OPTIONS /chat/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59121 - "POST /chat/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59120 - "OPTIONS /voice_clone/ HTTP/1.1" 200 OK
+Device set to use cpu
+/opt/anaconda3/envs/f5-tts/lib/python3.10/site-packages/transformers/models/whisper/generation_whisper.py:573: FutureWarning: The input name `inputs` is deprecated. Please make sure to use `input_features` instead.
+  warnings.warn(
+You have passed task=transcribe, but also have set `forced_decoder_ids` to [[1, None], [2, 50360]] which creates a conflict. `forced_decoder_ids` will be ignored in favor of task=transcribe.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+Converting audio...
+No reference text provided, transcribing reference audio...
+
+ref_text   你好我叫蔡思琪. 
+gen_text 0 爷爷您饿了啊，要不要先吃点水果垫垫肚子
+
+
+Generating audio in 1 batches...
+INFO:     127.0.0.1:59120 - "POST /voice_clone/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59848 - "GET /static/recordings/test.wav HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:60922 - "GET /static/recordings/test.wav HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:61413 - "GET /check-audio-path/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61471 - "OPTIONS /initiate/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61472 - "POST /initiate/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61723 - "OPTIONS /chat/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61724 - "POST /chat/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61723 - "OPTIONS /voice_clone/ HTTP/1.1" 200 OK
+Converting audio...
+Using cached reference text...
+
+ref_text   你好我叫蔡思琪. 
+gen_text 0 爷爷我给您煮碗面吧
+
+
+Generating audio in 1 batches...
+INFO:     127.0.0.1:61723 - "POST /voice_clone/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62060 - "GET /static/recordings/test.wav HTTP/1.1" 206 Partial Content
+INFO:     127.0.0.1:62429 - "GET /static/recordings/test.wav HTTP/1.1" 206 Partial Content
+WARNING:  StatReload detected changes in 'backend.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [36122]
+INFO:     Started server process [37060]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'main.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37060]
+INFO:     Started server process [37093]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [37093]
+INFO:     Stopping reloader process [36119]

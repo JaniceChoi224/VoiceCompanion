@@ -1,6 +1,8 @@
 import sounddevice as sd
 import scipy.io.wavfile as wav
 import os
+import re
+import numpy as np
 import requests
 import json
 from pydantic import BaseModel
@@ -39,8 +41,10 @@ class ChatRequest(BaseModel):
 
 class CharacterInfo(BaseModel):
     name: str
+    gender: str
+    age: str
+    job: str
     relationship: str
-    favorite_color: str
 
 
 def record_audio(filename: str, duration: int = 10, samplerate: int = 24000):
@@ -97,12 +101,59 @@ def convert_audio_to_wav(file_content: bytes, input_format: str) -> str:
     return wav_file_path
 
 
+def separate_by_punctuation(text):
+    # Using regex to split text by any punctuation
+    # separated_text = re.split(r'([.,!?;:()])', text)
+    separated_text = re.findall(r'[\u4e00-\u9fff]+|[a-zA-Z0-9]+|[.,!?;:()，。！？：；（）]', text)
+    # Removing any empty strings from the list
+    separated_text = [part.strip() for part in separated_text if part.strip()]
+    return separated_text
+
+
 def voice_clone(text: str, samplerate: int = 24000):
     ref_audio = AUDIO_SAVE_PATH + "/voice_sample.wav"
     ref_text = ""
     audio_output, _ = TTS(dirpath + ref_audio, ref_text, text, remove_silence=True)
     filepath = os.path.join(AUDIO_SAVE_PATH, "test.wav")
     wav.write(dirpath + filepath, samplerate, audio_output[1])
+    return filepath
+
+
+def generate_combined_voice(text: str, samplerate: int = 24000):
+    """
+    Generate a combined voice audio file using a voice cloning function.
+    
+    Args:
+        text (str): The input text to convert to speech.
+    
+    Returns:
+        AudioSegment: The combined voice audio with 0.1-second breaks at punctuation.
+    """
+    # Separate text by punctuation
+    text_segments = separate_by_punctuation(text)
+
+    # Create a combined audio segment
+    combined_audio = np.array([], dtype=np.float32)
+    
+    ref_audio = AUDIO_SAVE_PATH + "/voice_sample.wav"
+    ref_text = ""
+
+    for segment in text_segments:
+        print(segment)
+        # if segment in ".,!?;:()":
+        if re.match(r'[.,!?;:()，。！？：；（）]', segment):
+            # Append 0.1 second of silence
+            silence = np.zeros(int(samplerate * 0.1), dtype=np.float32)
+            combined_audio = np.concatenate((combined_audio, silence))
+        else:
+            speech_audio, _ = TTS(dirpath + ref_audio, ref_text, segment, remove_silence=True)
+            print(speech_audio[1].dtype)
+            combined_audio = np.concatenate((combined_audio, speech_audio[1]))
+
+    filepath = os.path.join(AUDIO_SAVE_PATH, "test.wav")
+    # wav.write(dirpath + filepath, samplerate, combined_audio)
+    # combined_audio.export(dirpath + filepath, format="wav")
+    wav.write(dirpath + filepath, samplerate, combined_audio)
     return filepath
 
 
@@ -115,8 +166,10 @@ def fill_template(character_info: CharacterInfo) -> str:
 
     # Replace placeholders
     filled_content = template_content.replace("*NAME_PLACEHOLDER*", character_info.name)
+    filled_content = filled_content.replace("*GENDER_PLACEHOLDER*", character_info.gender)
+    filled_content = filled_content.replace("*AGE_PLACEHOLDER*", character_info.age)
+    filled_content = filled_content.replace("*JOB_PLACEHOLDER*", character_info.job)
     filled_content = filled_content.replace("*RELATIONSHIP_PLACEHOLDER*", character_info.relationship)
-    filled_content = filled_content.replace("*LOCATION_PLACEHOLDER*", character_info.favorite_color)
 
     return filled_content
 
