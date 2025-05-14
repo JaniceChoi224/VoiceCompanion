@@ -111,7 +111,8 @@
   </div>
 
   <script>
-    const backendUrl = "http://127.0.0.1:8000";
+    // const backendUrl = "http://127.0.0.1:8000";
+    const backendUrl = "http://logically-sunny-boxer.ngrok-free.app";
 
     document.getElementById('upload-btn').addEventListener('click', () => {
       document.getElementById('upload-input').click();
@@ -184,8 +185,18 @@
     // Proceed button - Check if voice file exists via API
     document.getElementById('proceed-btn').addEventListener('click', async () => {
       try {
-        const response = await fetch(`${backendUrl}/check-audio-path/`);
+        console.log("Checking audio path...");
+        const response = await fetch(`${backendUrl}/check-audio-path/`, {
+          method: "GET",
+          headers: { "Accept": "application/json" },
+        });
+        const contentType = response.headers.get("content-type");
+        // if (!contentType.includes("application/json")) {
+        //   throw new Error("Expected JSON, got something else");
+        // }
+        console.log("API Response:", response);
         const data = await response.json();
+        console.log("API Response:", data);
         
         if (data.status === "success" && data.exists) {
           // File exists, proceed to chat
@@ -196,6 +207,7 @@
           alert("Please record or upload your voice first.");
         }
       } catch (error) {
+        console.error("Fetch error:", error);
         alert("Unable to check voice file. Please try again.");
       }
     });

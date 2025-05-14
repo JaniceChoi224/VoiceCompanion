@@ -1,3 +1,5 @@
 f5-tts
 fastapi[standard]
 sounddevice
+python-dotenv
+ngrok

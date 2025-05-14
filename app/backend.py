@@ -9,8 +9,11 @@ from pydantic import BaseModel
 from datetime import datetime
 from pydub import AudioSegment
 from io import BytesIO
+from dotenv import load_dotenv
 from F5TTS import TTS
 
+
+load_dotenv()  # defaults to .env in current dir
 
 dirpath = os.path.dirname(__file__)
 
@@ -31,7 +34,7 @@ os.makedirs(dirpath + TEMPLATE_PATH, exist_ok=True)
 
 # DeepSeek API configuration
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-DEEPSEEK_API_KEY = "sk-731921a5623e4c99a19176290b05f9a2"
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
 
 
 class ChatRequest(BaseModel):

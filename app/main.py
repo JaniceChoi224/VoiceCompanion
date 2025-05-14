@@ -9,9 +9,31 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from backend import ChatRequest, CharacterInfo, record_audio, voice_clone, generate_combined_voice, query_deepseek, initiate_query_deepseek, convert_audio_to_wav, check_file_exists
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+from dotenv import load_dotenv
+from contextlib import asynccontextmanager
+import ngrok
 
 
-app = FastAPI()
+load_dotenv()  # defaults to .env in current dir
+
+NGROK_AUTH_TOKEN = os.getenv("NGROK_AUTH_TOKEN")
+APPLICATION_PORT = 8000
+
+# ngrok free tier only allows one agent. So we tear down the tunnel on application termination
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # logger.info("Setting up Ngrok Tunnel")
+    ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+    ngrok.forward(
+        addr=APPLICATION_PORT,
+        domain="logically-sunny-boxer.ngrok-free.app",
+    )
+    yield
+    # logger.info("Tearing Down Ngrok Tunnel")
+    ngrok.disconnect()
+
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:3000",  # <-- must match exactly!
@@ -45,8 +67,9 @@ async def upload_voice(file: UploadFile = File(...)):
 
         # Convert the audio file to WAV and save it
         wav_file_path = convert_audio_to_wav(file_content, input_format)
-
-        return JSONResponse({"status": "success", "file": wav_file_path})
+        content = {"status": "success", "file": wav_file_path}
+        response = JSONResponse(content=content)
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -54,7 +77,9 @@ async def upload_voice(file: UploadFile = File(...)):
 @app.get("/check-audio-path/")
 async def check_audio_path():
     file_exists = check_file_exists('audio', 'voice_sample.wav')
-    return JSONResponse({"status": "success", "exists": file_exists})
+    content = {"status": "success", "exists": file_exists}
+    response = JSONResponse(content=content)
+    return response
 
 @app.post("/record-audio/")
 async def record_audio_endpoint(duration: int = Form(10), filename: str = Form("voice_sample.wav")):
@@ -107,3 +132,6 @@ async def initiate_chat(character_info: CharacterInfo):
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Voice Clone Preparation API (F5-TTS Ready)"}
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=False)
